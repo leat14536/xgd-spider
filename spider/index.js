@@ -17,12 +17,12 @@ const spideStart = async function (entry, start, end) {
   async function spide(next) {
     let flag = true
     let html
-    try {
-      html = await get(link)
-    } catch (e) {
-      html = await get(link)
-    }
     console.log(next)
+    try {
+      html = await get(next)
+    } catch (e) {
+      html = await get(next)
+    }
     // const html = readHTML('1.html')
     const $ = cheerio.load(html)
   
@@ -52,13 +52,16 @@ const spideStart = async function (entry, start, end) {
 
 // 传入links 返回链接内的详细数据
 const reg = /发布时间：(.*)作者：(.*)来源：(.*)/
+const linkReg = /https:\/\/news.nwpu.edu.cn\/info\/\d{4}\/\d*.htm/
 const getAllLinksDetail = async function (links) {
   const data = []
-  for (let i = 0, l = links.length; i < l; i++) {
+  for (let i = 0, l = links.length; i < l; i+=2) {
     // await Promise.all(
     //   [
-    await handleLink(links[i])
-    //     handleLink(links[i + 1]),
+    const pm1 = handleLink(links[i])
+    const pm2 = handleLink(links[i + 1])
+    await pm1
+    await pm2
     //     handleLink(links[i + 2]),
     //     handleLink(links[i + 3]),
     //     handleLink(links[i + 4])
@@ -71,12 +74,30 @@ const getAllLinksDetail = async function (links) {
   async function handleLink (link) {
     if (!link) return
     let html
+    if (!linkReg.test(link)) {
+      data.push({
+        link,
+        auths: '宣传部',
+        title: '出错, 可能是外链'
+      })
+      return
+    }
+    console.log(link)
     try {
       html = await get(link)
     } catch (e) {
-      html = await get(link)
+      try {
+        html = await get(link)
+      } catch (e) {
+        data.push({
+          link,
+          auths: '宣传部',
+          title: '出错, 可能是外链'
+        })
+        return
+      }
     }
-    console.log(link)
+    
     // const html = readHTML('2.html')
     const $ = cheerio.load(html)
     const str = $('.time span').slice(0, 3).text().trim()

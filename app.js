@@ -16,7 +16,7 @@ async function start() {
     const times = item.times
     for (let j = 0, lj = times.length; j < lj; j++) {
       const ret = await spideStart(entry, ...times[j].map(t => (new Date(t)).getTime()))
-      writeHTML(`./html/${item.prefix}$${j+1}.json`, JSON.stringify(ret))
+      writeHTML(`./${item.prefix}${j+1}.json`, JSON.stringify(ret, null, 2))
       const data = await getAllLinksDetail(ret.data)
       const sheet = handleSheet(data)
       writeXlsx(`${item.publicPath}/${item.prefix}${j + 1}.xlsx`, [sheet])
